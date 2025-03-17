@@ -25,6 +25,7 @@ import java.util.concurrent.Future;
 import io.vavr.control.Try;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.Nullable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -334,25 +335,13 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 		// If the transaction attribute is null, the method is non-transactional.
 		TransactionAttributeSource tas = getTransactionAttributeSource();
 		final TransactionAttribute txAttr = (tas != null ? tas.getTransactionAttribute(method, targetClass) : null);
+		// 获取当前的事务管理器
+		// 事务管理器有两个实现一个是 ReactiveTransactionManager 一个是 PlatformTransactionManager
 		final TransactionManager tm = determineTransactionManager(txAttr, targetClass);
 
+		// 是否是响应式的事务管理器
 		if (this.reactiveAdapterRegistry != null && tm instanceof ReactiveTransactionManager rtm) {
-			boolean isSuspendingFunction = KotlinDetector.isSuspendingFunction(method);
-			boolean hasSuspendingFlowReturnType = isSuspendingFunction &&
-					COROUTINES_FLOW_CLASS_NAME.equals(new MethodParameter(method, -1).getParameterType().getName());
-
-			ReactiveTransactionSupport txSupport = this.transactionSupportCache.computeIfAbsent(method, key -> {
-				Class<?> reactiveType =
-						(isSuspendingFunction ? (hasSuspendingFlowReturnType ? Flux.class : Mono.class) : method.getReturnType());
-				ReactiveAdapter adapter = this.reactiveAdapterRegistry.getAdapter(reactiveType);
-				if (adapter == null) {
-					throw new IllegalStateException("Cannot apply reactive transaction to non-reactive return type [" +
-							method.getReturnType() + "] with specified transaction manager: " + tm);
-				}
-				return new ReactiveTransactionSupport(adapter);
-			});
-
-			return txSupport.invokeWithinTransaction(method, targetClass, invocation, txAttr, rtm);
+			return processUsingReactiveTransactionManager(method, targetClass, invocation, rtm, tm, txAttr);
 		}
 
 		PlatformTransactionManager ptm = asPlatformTransactionManager(tm);
@@ -466,6 +455,26 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 			}
 			return result;
 		}
+	}
+
+	private @NotNull Object processUsingReactiveTransactionManager(Method method, @org.jetbrains.annotations.Nullable Class<?> targetClass, InvocationCallback invocation, ReactiveTransactionManager rtm,
+			TransactionManager tm, TransactionAttribute txAttr) {
+		boolean isSuspendingFunction = KotlinDetector.isSuspendingFunction(method);
+		boolean hasSuspendingFlowReturnType = isSuspendingFunction &&
+				COROUTINES_FLOW_CLASS_NAME.equals(new MethodParameter(method, -1).getParameterType().getName());
+
+		ReactiveTransactionSupport txSupport = this.transactionSupportCache.computeIfAbsent(method, key -> {
+			Class<?> reactiveType =
+					(isSuspendingFunction ? (hasSuspendingFlowReturnType ? Flux.class : Mono.class) : method.getReturnType());
+			ReactiveAdapter adapter = this.reactiveAdapterRegistry.getAdapter(reactiveType);
+			if (adapter == null) {
+				throw new IllegalStateException("Cannot apply reactive transaction to non-reactive return type [" +
+						method.getReturnType() + "] with specified transaction manager: " + tm);
+			}
+			return new ReactiveTransactionSupport(adapter);
+		});
+
+		return txSupport.invokeWithinTransaction(method, targetClass, invocation, txAttr, rtm);
 	}
 
 	/**
