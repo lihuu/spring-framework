@@ -165,12 +165,15 @@ public class RestTemplate extends InterceptingHttpAccessor implements RestOperat
 	}
 
 
+	// 用于在HTTP请求和响应之间进行转换的策略接口。
 	private final List<HttpMessageConverter<?>> messageConverters = new ArrayList<>();
 
+	// 判断某个特定响应是否存在错误的策略接口。
 	private ResponseErrorHandler errorHandler = new DefaultResponseErrorHandler();
 
 	private UriTemplateHandler uriTemplateHandler;
 
+	// Response header 解析器
 	private final ResponseExtractor<HttpHeaders> headersExtractor = new HeadersExtractor();
 
 	private ObservationRegistry observationRegistry = ObservationRegistry.NOOP;
