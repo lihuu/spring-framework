@@ -86,7 +86,7 @@ import static org.springframework.http.MediaType.parseMediaType;
  * @author Sam Brannen
  */
 @SuppressWarnings("unchecked")
-class RestTemplateTests {
+public class RestTemplateTests {
 
 	private final ClientHttpRequestFactory requestFactory = mock();
 
@@ -115,6 +115,9 @@ class RestTemplateTests {
 		assertThat(httpMessageConverters).extracting("class").containsOnlyOnce(
 			MappingJackson2HttpMessageConverter.class
 		);
+
+		assertThat(httpMessageConverters).extracting("class").contains(StringHttpMessageConverter.class);
+
 		assertThat(httpMessageConverters).extracting("class").doesNotContain(
 				KotlinSerializationJsonHttpMessageConverter.class
 		);

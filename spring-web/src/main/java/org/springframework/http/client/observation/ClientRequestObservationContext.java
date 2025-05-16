@@ -42,7 +42,7 @@ public class ClientRequestObservationContext extends RequestReplySenderContext<C
 	 * @param request the HTTP client request
 	 */
 	public ClientRequestObservationContext(ClientHttpRequest request) {
-		super(ClientRequestObservationContext::setRequestHeader);
+		super((ClientRequestObservationContext::setRequestHeader));
 		setCarrier(request);
 	}
 

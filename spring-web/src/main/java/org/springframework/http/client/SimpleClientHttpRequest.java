@@ -33,15 +33,14 @@ import org.springframework.util.StringUtils;
  * execute streaming requests. Created via the {@link SimpleClientHttpRequestFactory}.
  *
  * @author Arjen Poutsma
- * @since 6.1
  * @see SimpleClientHttpRequestFactory#createRequest(URI, HttpMethod)
+ * @since 6.1
  */
 final class SimpleClientHttpRequest extends AbstractStreamingClientHttpRequest {
 
 	private final HttpURLConnection connection;
 
 	private final int chunkSize;
-
 
 	SimpleClientHttpRequest(HttpURLConnection connection, int chunkSize) {
 		this.connection = connection;
@@ -57,8 +56,7 @@ final class SimpleClientHttpRequest extends AbstractStreamingClientHttpRequest {
 	public URI getURI() {
 		try {
 			return this.connection.getURL().toURI();
-		}
-		catch (URISyntaxException ex) {
+		} catch (URISyntaxException ex) {
 			throw new IllegalStateException("Could not get HttpURLConnection URI: " + ex.getMessage(), ex);
 		}
 	}
@@ -69,8 +67,7 @@ final class SimpleClientHttpRequest extends AbstractStreamingClientHttpRequest {
 			long contentLength = headers.getContentLength();
 			if (contentLength >= 0) {
 				this.connection.setFixedLengthStreamingMode(contentLength);
-			}
-			else {
+			} else {
 				this.connection.setChunkedStreamingMode(this.chunkSize);
 			}
 		}
@@ -83,19 +80,19 @@ final class SimpleClientHttpRequest extends AbstractStreamingClientHttpRequest {
 			try (OutputStream os = this.connection.getOutputStream()) {
 				body.writeTo(os);
 			}
-		}
-		else {
+		} else {
 			// Immediately trigger the request in a no-output scenario as well
 			this.connection.getResponseCode();
+
 		}
 		return new SimpleClientHttpResponse(this.connection);
 	}
 
-
 	/**
 	 * Add the given headers to the given HTTP connection.
+	 *
 	 * @param connection the connection to add the headers to
-	 * @param headers the headers to add
+	 * @param headers    the headers to add
 	 */
 	static void addHeaders(HttpURLConnection connection, HttpHeaders headers) {
 		String method = connection.getRequestMethod();
@@ -110,8 +107,7 @@ final class SimpleClientHttpRequest extends AbstractStreamingClientHttpRequest {
 			if (HttpHeaders.COOKIE.equalsIgnoreCase(headerName)) {  // RFC 6265
 				String headerValue = StringUtils.collectionToDelimitedString(headerValues, "; ");
 				connection.setRequestProperty(headerName, headerValue);
-			}
-			else {
+			} else {
 				for (String headerValue : headerValues) {
 					String actualHeaderValue = headerValue != null ? headerValue : "";
 					connection.addRequestProperty(headerName, actualHeaderValue);

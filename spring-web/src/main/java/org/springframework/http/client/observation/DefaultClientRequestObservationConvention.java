@@ -17,6 +17,7 @@
 package org.springframework.http.client.observation;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.Locale;
 import java.util.regex.Pattern;
 
@@ -169,7 +170,8 @@ public class DefaultClientRequestObservationConvention implements ClientRequestO
 
 	protected KeyValue requestUri(ClientRequestObservationContext context) {
 		if (context.getCarrier() != null) {
-			return KeyValue.of(HighCardinalityKeyNames.HTTP_URL, context.getCarrier().getURI().toASCIIString());
+			URI uri = context.getCarrier().getURI();
+			return KeyValue.of(HighCardinalityKeyNames.HTTP_URL, uri.toASCIIString());
 		}
 		return HTTP_URL_NONE;
 	}

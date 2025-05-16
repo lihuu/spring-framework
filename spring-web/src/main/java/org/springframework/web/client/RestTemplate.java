@@ -171,6 +171,7 @@ public class RestTemplate extends InterceptingHttpAccessor implements RestOperat
 	// 判断某个特定响应是否存在错误的策略接口。
 	private ResponseErrorHandler errorHandler = new DefaultResponseErrorHandler();
 
+	// Uri 模版
 	private UriTemplateHandler uriTemplateHandler;
 
 	// Response header 解析器
@@ -851,8 +852,11 @@ public class RestTemplate extends InterceptingHttpAccessor implements RestOperat
 			throw createResourceAccessException(url, method, ex);
 		}
 
+		// 这个 observationContext 应该是监控相关的
+		// 后面可以再深入了解一下
 		ClientRequestObservationContext observationContext = new ClientRequestObservationContext(request);
 		observationContext.setUriTemplate(uriTemplate);
+
 		Observation observation = ClientHttpObservationDocumentation.HTTP_CLIENT_EXCHANGES.observation(
 				this.observationConvention, DEFAULT_OBSERVATION_CONVENTION,
 				() -> observationContext, this.observationRegistry).start();
@@ -863,6 +867,7 @@ public class RestTemplate extends InterceptingHttpAccessor implements RestOperat
 			}
 			response = request.execute();
 			observationContext.setResponse(response);
+			// 默认的这里是处理错误，很奇怪的命名
 			handleResponse(url, method, response);
 			return (responseExtractor != null ? responseExtractor.extractData(response) : null);
 		}

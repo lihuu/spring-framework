@@ -40,7 +40,7 @@ import static org.mockito.Mockito.mock;
  *
  * @author Brian Clozel
  */
-class DefaultClientRequestObservationConventionTests {
+public class DefaultClientRequestObservationConventionTests {
 
 	private final MockClientHttpRequest request = new MockClientHttpRequest(HttpMethod.GET, "/test");
 
@@ -49,7 +49,7 @@ class DefaultClientRequestObservationConventionTests {
 	private final DefaultClientRequestObservationConvention observationConvention = new DefaultClientRequestObservationConvention();
 
 	@Test
-	void shouldHaveName() {
+	public void shouldHaveName() {
 		assertThat(this.observationConvention.getName()).isEqualTo("http.client.requests");
 	}
 
@@ -68,11 +68,13 @@ class DefaultClientRequestObservationConventionTests {
 
 	@Test
 	void addsKeyValuesForRequestWithUriTemplate() {
-		ClientRequestObservationContext context = createContext(
-				new MockClientHttpRequest(HttpMethod.GET, "/resource/{id}", 42), response);
-		context.setUriTemplate("/resource/{id}");
+		String uriTemplate = "/resource/{id}";
+		MockClientHttpRequest mockClientHttpRequest = new MockClientHttpRequest(HttpMethod.GET, uriTemplate, 42);
+		ClientRequestObservationContext context = createContext(mockClientHttpRequest, response);
+		context.setUriTemplate(uriTemplate);
+
 		assertThat(this.observationConvention.getLowCardinalityKeyValues(context))
-				.contains(KeyValue.of("exception", "none"), KeyValue.of("method", "GET"), KeyValue.of("uri", "/resource/{id}"),
+				.contains(KeyValue.of("exception", "none"), KeyValue.of("method", "GET"), KeyValue.of("uri", uriTemplate),
 						KeyValue.of("status", "200"), KeyValue.of("client.name", "none"), KeyValue.of("outcome", "SUCCESS"));
 		assertThat(this.observationConvention.getHighCardinalityKeyValues(context)).contains(KeyValue.of("http.url", "/resource/42"));
 	}
@@ -115,7 +117,7 @@ class DefaultClientRequestObservationConventionTests {
 		ClientRequestObservationContext context = createContext(
 				new MockClientHttpRequest(HttpMethod.GET, "/resource/42"), response);
 		assertThat(this.observationConvention.getLowCardinalityKeyValues(context))
-				.contains(KeyValue.of("method", "GET"), KeyValue.of("client.name", "none"), KeyValue.of("uri", "none"));
+				.contains(KeyValue.of("method", "GET"), KeyValue.of("client.name", "none"), KeyValue.of("uri", "none"),KeyValue.of("outcome", "SUCCESS"));
 		assertThat(this.observationConvention.getHighCardinalityKeyValues(context)).contains(KeyValue.of("http.url", "/resource/42"));
 	}
 
